@@ -7,9 +7,10 @@ interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract LiquidityFluctuationTrap is ITrap {
-    address public constant TOKEN = 0xFba1bc0E3d54D71Ba55da7C03c7f63D4641921B1;
-    address public constant POOL = 0x0000000000000000000000000000000000000000;
+contract LiquidityDrainTrap is ITrap {
+    address public constant TOKEN = 0x840D650ce282D3896AD6484C097c22bE4e1B4F7b;
+    address public constant POOL  = 0xCb5a0CdBa2d932E86715701d36222a911c4CcBC3;
+    uint256 public constant THRESHOLD = 1000000000000000000; // 1 ETH
 
     struct CollectOutput {
         uint256 liquidityBalance;
@@ -25,9 +26,7 @@ contract LiquidityFluctuationTrap is ITrap {
     function shouldRespond(bytes[] calldata data) external pure override returns (bool, bytes memory) {
         CollectOutput memory current = abi.decode(data[0], (CollectOutput));
         CollectOutput memory past = abi.decode(data[data.length - 1], (CollectOutput));
-        if (past.liquidityBalance == 0) return (false, bytes(""));
-        uint256 fluctuation = ((current.liquidityBalance - past.liquidityBalance) * 1e18) / past.liquidityBalance;
-        if (fluctuation > 1e17) return (true, bytes(""));
+        if (past.liquidityBalance < THRESHOLD) return (true, bytes(""));
         return (false, bytes(""));
     }
 }
